@@ -41,21 +41,12 @@ namespace cMinesweeperApi.Controllers
             return cell;
         }
 
-        // GET: api/BoardCells/5
-        [HttpGet("{id}")]
-        public List<Cell> GetBoardCells(long id)
-        {
-            var cell = _context.Cells.Where(c => c.boardId == id).ToList();
-
-            return cell;
-        }
-
         // PUT: api/Cells/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCell(long id, Cell cell)
         {
-            if (id != cell.Id)
+            if (id != cell.id)
             {
                 return BadRequest();
             }
@@ -89,7 +80,7 @@ namespace cMinesweeperApi.Controllers
             _context.Cells.Add(cell);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCell", new { id = cell.Id }, cell);
+            return CreatedAtAction("GetCell", new { id = cell.id }, cell);
         }
 
         // DELETE: api/Cells/5
@@ -110,7 +101,7 @@ namespace cMinesweeperApi.Controllers
 
         private bool CellExists(long id)
         {
-            return _context.Cells.Any(e => e.Id == id);
+            return _context.Cells.Any(e => e.id == id);
         }
     }
 }

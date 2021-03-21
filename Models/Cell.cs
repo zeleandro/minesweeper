@@ -2,7 +2,7 @@ namespace cMinesweeperApi.Models
 {
     public class Cell
     {
-        public long Id { get; set; }
+        public long id { get; set; }
         public bool hasBomb { get; set; }
         public bool hasFlag { get; set; }
         public bool hasQuestion { get; set; }

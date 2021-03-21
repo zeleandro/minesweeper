@@ -43,7 +43,7 @@ namespace cMinesweeperApi.Controllers
             {
                 return NotFound();
             }
-            
+
             HttpClient client = new HttpClient();
             try
             {
@@ -58,6 +58,13 @@ namespace cMinesweeperApi.Controllers
             }
 
             return board;
+        }
+
+        // GET: api/Boards
+        [HttpGet("init")]
+        public async Task<ActionResult<IEnumerable<Board>>> initializeBoards()
+        {
+            return await _context.Boards.ToListAsync();
         }
 
         // PUT: api/Boards/5
@@ -122,11 +129,18 @@ namespace cMinesweeperApi.Controllers
                         "https://localhost:5001/api/Cells",
                         new StringContent(JsonSerializer.Serialize(aCell), Encoding.UTF8, "application/json")
                     );
-
                 }
             }
 
             return response;
+        }
+
+        // POST: api/Boards
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost("populate")]
+        public async void PopulateBombs(long boardId)
+        {
+            await populate(1);
         }
 
         // DELETE: api/Boards/5
@@ -148,6 +162,46 @@ namespace cMinesweeperApi.Controllers
         private bool BoardExists(long id)
         {
             return _context.Boards.Any(e => e.Id == id);
+        }
+
+        public async Task<Board> populate(long boardId)
+        {
+            Board board = _context.Boards.Find(boardId);
+
+            HttpClient client = new HttpClient();
+            try
+            {
+                string responseBody = await client.GetStringAsync("https://localhost:5001/api/Cells");
+                board.cells = JsonSerializer.Deserialize<List<Cell>>(responseBody);
+                board.cells = board.cells.Where(c => c.boardId == boardId).ToList();
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", e.Message);
+            }
+
+            int generatedBombs = 0;
+            int numberOfBombs = board.numberOfBombs;
+            var randomRow = new Random();
+            var randomColumn = new Random();
+            int n, m;
+
+            while (generatedBombs < numberOfBombs)
+            {
+                n = randomRow.Next(0, board.rows);
+                m = randomColumn.Next(0, board.columns);
+                Cell cell = board.cells.FirstOrDefault(c => c.x == n && c.y == m);
+                if (!cell.hasBomb)
+                {
+                    cell.hasBomb = true;
+                    generatedBombs++;
+                    await client.PutAsync(
+                        "https://localhost:5001/api/Cells/" + cell.id,
+                        new StringContent(JsonSerializer.Serialize(cell), Encoding.UTF8, "application/json")
+                    );}
+            }
+            return board;
         }
     }
 }

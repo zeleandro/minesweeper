@@ -33,7 +33,7 @@ namespace cMinesweeperApi
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "cMinesweeperApi", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "MinesweeperApi", Version = "v1" });
             });
         }
 

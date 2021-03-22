@@ -60,13 +60,6 @@ namespace cMinesweeperApi.Controllers
             return board;
         }
 
-        // GET: api/Boards
-        [HttpGet("init")]
-        public async Task<ActionResult<IEnumerable<Board>>> initializeBoards()
-        {
-            return await _context.Boards.ToListAsync();
-        }
-
         // PUT: api/Boards/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -135,13 +128,14 @@ namespace cMinesweeperApi.Controllers
             return response;
         }
 
-        // POST: api/Boards
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("populate")]
-        public async void PopulateBombs(long boardId)
-        {
-            await populate(1);
-        }
+        // // POST: api/Boards
+        // // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // [HttpPost("populate")]
+        // public async void PopulateBombs(long boardId)
+        // {
+        //     Console.WriteLine("BoardId: " + boardId);
+        //     await populate(1);
+        // }
 
         // DELETE: api/Boards/5
         [HttpDelete("{id}")]
@@ -164,6 +158,7 @@ namespace cMinesweeperApi.Controllers
             return _context.Boards.Any(e => e.Id == id);
         }
 
+        [HttpPost("populate")]
         public async Task<Board> populate(long boardId)
         {
             Board board = _context.Boards.Find(boardId);
@@ -199,7 +194,8 @@ namespace cMinesweeperApi.Controllers
                     await client.PutAsync(
                         "https://localhost:5001/api/Cells/" + cell.id,
                         new StringContent(JsonSerializer.Serialize(cell), Encoding.UTF8, "application/json")
-                    );}
+                    );
+                }
             }
             return board;
         }

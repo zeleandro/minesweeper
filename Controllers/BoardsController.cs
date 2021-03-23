@@ -45,9 +45,11 @@ namespace cMinesweeperApi.Controllers
             }
 
             HttpClient client = new HttpClient();
+            string baseURL =  HttpContext.Request.Scheme.ToString() + "://" + HttpContext.Request.Host.ToString();
+            Console.WriteLine(baseURL);
             try
             {
-                string responseBody = await client.GetStringAsync("https://localhost:5001/api/Cells");
+                string responseBody = await client.GetStringAsync(baseURL + "/api/Cells");
                 board.cells = JsonSerializer.Deserialize<List<Cell>>(responseBody);
                 board.cells = board.cells.Where(c => c.boardId == id).ToList();
             }
@@ -118,8 +120,9 @@ namespace cMinesweeperApi.Controllers
                     board.cells.Add(aCell);
 
                     var client = new HttpClient();
+                    string baseURL =  HttpContext.Request.Scheme.ToString() + "://" + HttpContext.Request.Host.ToString();
                     await client.PostAsync(
-                        "https://localhost:5001/api/Cells",
+                        baseURL + "/api/Cells",
                         new StringContent(JsonSerializer.Serialize(aCell), Encoding.UTF8, "application/json")
                     );
                 }
@@ -155,9 +158,10 @@ namespace cMinesweeperApi.Controllers
             Board board = _context.Boards.Find(boardId);
 
             HttpClient client = new HttpClient();
+            string baseURL =  HttpContext.Request.Scheme.ToString() + "://" + HttpContext.Request.Host.ToString();
             try
             {
-                string responseBody = await client.GetStringAsync("https://localhost:5001/api/Cells");
+                string responseBody = await client.GetStringAsync(baseURL + "/api/Cells");
                 board.cells = JsonSerializer.Deserialize<List<Cell>>(responseBody);
                 board.cells = board.cells.Where(c => c.boardId == boardId).ToList();
             }
@@ -183,7 +187,7 @@ namespace cMinesweeperApi.Controllers
                     cell.hasBomb = true;
                     generatedBombs++;
                     await client.PutAsync(
-                        "https://localhost:5001/api/Cells/" + cell.id,
+                        baseURL + "/api/Cells/" + cell.id,
                         new StringContent(JsonSerializer.Serialize(cell), Encoding.UTF8, "application/json")
                     );
                 }

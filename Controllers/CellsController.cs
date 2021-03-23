@@ -315,8 +315,9 @@ namespace cMinesweeperApi.Controllers
             if (!hiddenPanels.Except(minePanels).Any())
             {
                 HttpClient client = new HttpClient();
+                string baseURL =  HttpContext.Request.Scheme.ToString() + "://" + HttpContext.Request.Host.ToString();
                 await client.PutAsync(
-                    "https://localhost:5001/api/Boards/completioncheck/id=" + boardId + "&status=" + status,
+                    baseURL + "/api/Boards/completioncheck/id=" + boardId + "&status=" + status,
                     null
                 );
             }

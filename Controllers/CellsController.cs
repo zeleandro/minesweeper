@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using cMinesweeperApi.Models;
+using System.Net.Http;
+using System.Text.Json;
 
 namespace cMinesweeperApi.Controllers
 {
@@ -185,6 +187,10 @@ namespace cMinesweeperApi.Controllers
 
             cell.hasFlag = false;
             cell.isUncovered = true;
+            if (!cell.hasBomb)
+            {
+                RevealZeros(id);
+            }
 
             _context.Entry(cell).State = EntityState.Modified;
 
@@ -205,6 +211,115 @@ namespace cMinesweeperApi.Controllers
             }
 
             return NoContent();
+        }
+
+        public void Reveal(long id)
+        {
+            
+            Cell cell = _context.Cells.Find(id);
+            cell.isUncovered = true;
+            cell.hasFlag = false;
+
+            _context.Entry(cell).State = EntityState.Modified;
+
+            try
+            {
+                _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
+        }
+        public void RevealPanel(int x, int y, long boardId)
+        {
+            //Step 1: Find and reveal the clicked panel
+            Cell selectedPanel = _context.Cells.FirstOrDefault(panel => panel.boardId == boardId
+                                                        && panel.x == x
+                                                        && panel.y == y);
+            // selectedPanel.Reveal(selectedPanel.id);
+            Reveal(selectedPanel.id);
+
+            //Step 2: If the panel is a mine, show all mines. Game over!
+            if (selectedPanel.hasFlag)
+            {
+                CompletionCheck(boardId, 4);
+                RevealAllMines(boardId);
+                return;
+            }
+
+            //Step 3: If the panel is a zero, cascade reveal neighbors.
+            if (selectedPanel.neightbors == 0)
+            {
+                RevealZeros(selectedPanel.id);
+            }
+
+            //Step 4: If this move caused the game to be complete, mark it as such
+            CompletionCheck(boardId, 4);
+        }
+
+        public List<Cell> GetNeighbors(long id)
+        {
+            Cell cell = _context.Cells.Find(id);
+            int x = cell.x;
+            int y = cell.y;
+            long boardId = cell.boardId;
+
+            var nearbyPanels = _context.Cells.Where(panel => panel.boardId == boardId
+                                                    && panel.x >= (x - 1)
+                                                    && panel.x <= (x + 1)
+                                                    && panel.y >= (y - 1)
+                                                    && panel.y <= (y + 1));
+
+            var currentPanel = _context.Cells.Where(panel => panel.boardId == boardId
+                                                    && panel.x == x
+                                                    && panel.y == y);
+
+            return nearbyPanels.Except(currentPanel).ToList();
+        }
+
+        private void RevealAllMines(long boardId)
+        {
+            _context.Cells.Where(x => x.hasBomb && x.boardId == boardId)
+                  .ToList()
+                  .ForEach(x => x.isUncovered = true);
+        }
+
+        public void RevealZeros(long i)
+        {
+            //Get all neighbor panels
+            var neighborPanels = GetNeighbors(i)
+                                   .Where(panel => !panel.isUncovered);
+
+            foreach (var neighbor in neighborPanels)
+            {
+                //For each neighbor panel, reveal that panel.
+                neighbor.isUncovered = true;
+
+                //If the neighbor is also a 0, reveal all of its neighbors too.
+                if (neighbor.neightbors == 0)
+                {
+                    RevealZeros(neighbor.id);
+                }
+            }
+        }
+
+        private async void CompletionCheck(long boardId, int status)
+        {
+            var hiddenPanels = _context.Cells.Where(x => !x.isUncovered && x.boardId == boardId)
+                                     .Select(x => x.id);
+
+            var minePanels = _context.Cells.Where(x => x.hasBomb && x.boardId == boardId)
+                                   .Select(x => x.id);
+
+            if (!hiddenPanels.Except(minePanels).Any())
+            {
+                HttpClient client = new HttpClient();
+                await client.PutAsync(
+                    "https://localhost:5001/api/Boards/completioncheck/id=" + boardId + "&status=" + status,
+                    null
+                );
+            }
         }
     }
 }

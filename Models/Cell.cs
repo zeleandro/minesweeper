@@ -11,6 +11,5 @@ namespace cMinesweeperApi.Models
         public int x { get; set; }
         public int y { get; set; }
         public long boardId { get; set; }
-        // public Board board { get; set; }
     }
 }

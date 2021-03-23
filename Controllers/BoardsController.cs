@@ -128,15 +128,6 @@ namespace cMinesweeperApi.Controllers
             return response;
         }
 
-        // // POST: api/Boards
-        // // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        // [HttpPost("populate")]
-        // public async void PopulateBombs(long boardId)
-        // {
-        //     Console.WriteLine("BoardId: " + boardId);
-        //     await populate(1);
-        // }
-
         // DELETE: api/Boards/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBoard(long id)
@@ -198,6 +189,40 @@ namespace cMinesweeperApi.Controllers
                 }
             }
             return board;
+        }
+
+        // PUT: api/Boards/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("completioncheck")]
+        public async Task<IActionResult> CompletionCheck(long id, int status)
+        {
+            Board board = await _context.Boards.FindAsync(id);
+            if (id != board.Id)
+            {
+                return BadRequest();
+            }
+
+            board.status = status;
+
+            _context.Entry(board).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BoardExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
     }
 }

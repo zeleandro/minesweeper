@@ -176,7 +176,7 @@ namespace cMinesweeperApi.Controllers
 
         // PUT: api/Cells/reveal?id=5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("reveal")]
+        [HttpPut("revealcell")]
         public async Task<IActionResult> RevealCell(long id)
         {
             Cell cell = await _context.Cells.FindAsync(id);
@@ -213,7 +213,7 @@ namespace cMinesweeperApi.Controllers
             return NoContent();
         }
 
-        public void Reveal(long id)
+        private void Reveal(long id)
         {
             
             Cell cell = _context.Cells.Find(id);
@@ -231,7 +231,7 @@ namespace cMinesweeperApi.Controllers
                 throw;
             }
         }
-        public void RevealPanel(int x, int y, long boardId)
+        private void RevealPanel(int x, int y, long boardId)
         {
             //Step 1: Find and reveal the clicked panel
             Cell selectedPanel = _context.Cells.FirstOrDefault(panel => panel.boardId == boardId
@@ -258,7 +258,7 @@ namespace cMinesweeperApi.Controllers
             CompletionCheck(boardId, 4);
         }
 
-        public List<Cell> GetNeighbors(long id)
+        private List<Cell> GetNeighbors(long id)
         {
             Cell cell = _context.Cells.Find(id);
             int x = cell.x;
@@ -285,7 +285,7 @@ namespace cMinesweeperApi.Controllers
                   .ForEach(x => x.isUncovered = true);
         }
 
-        public void RevealZeros(long i)
+        private void RevealZeros(long i)
         {
             //Get all neighbor panels
             var neighborPanels = GetNeighbors(i)

@@ -46,7 +46,6 @@ namespace cMinesweeperApi.Controllers
 
             HttpClient client = new HttpClient();
             string baseURL =  HttpContext.Request.Scheme.ToString() + "://" + HttpContext.Request.Host.ToString();
-            Console.WriteLine(baseURL);
             try
             {
                 string responseBody = await client.GetStringAsync(baseURL + "/api/Cells");
